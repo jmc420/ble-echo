@@ -20,3 +20,5 @@ The exception is:
 
 If you try and trace down into the android SDK to see where the problem is, the source code does not match the byte code. Changing the targetSdkVersion in build.gradle to match the SDK version in the device does not resolve the issue. The techniques described in this SO article do not fix the problem:
 
+https://stackoverflow.com/questions/39990752/source-code-does-not-match-the-bytecode-when-debugging-on-a-device
+
