@@ -2,6 +2,7 @@ package org.jamescowan.bluetooth.echo.service
 
 import android.app.Service
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import org.jamescowan.bluetooth.echo.server.IGattServerListener
@@ -17,10 +18,13 @@ class GattEchoService : Service() {
     }
 
     override fun onCreate() {
+        val context: Context = this.applicationContext
 
         Timber.i("Created service ")
 
-        gattEchoServer = GattEchoServer(this.applicationContext)
+        Thread().run {
+            gattEchoServer = GattEchoServer(context)
+        }
     }
 
     override fun onDestroy() {
