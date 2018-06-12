@@ -2,6 +2,8 @@ package org.jamescowan.bluetooth.echo.client
 
 import android.bluetooth.*
 import android.content.Context
+import org.jamescowan.bluetooth.echo.Constants
+import org.jamescowan.bluetooth.echo.packet.Packet
 import timber.log.Timber
 import java.util.*
 
@@ -11,12 +13,10 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
     private lateinit var connection: BluetoothGatt
     private var connected = false;
     private var listener: IGattClientListener
-    private var packets: MutableList<ByteArray> = mutableListOf()
-    private var response:String = ""
+    private var packets: MutableList<Packet> = mutableListOf()
     private var serviceUUID: UUID
 
     private val MAXBYTES = 19
-    private val END:Byte = 1
 
     init {
         this.serviceUUID = serviceUUID
@@ -41,7 +41,6 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
             return false;
         }
 
-        this.response = ""
         this.packets = createPackets(message)
 
         var characteristic:BluetoothGattCharacteristic? = findCharacteristic(connection)
@@ -70,19 +69,19 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
         return result
     }
 
-    private fun createPackets(message:String):MutableList<ByteArray> {
-        val result: MutableList<ByteArray> = mutableListOf()
+    private fun createPackets(message:String):MutableList<Packet> {
+        val result: MutableList<Packet> = mutableListOf()
         var data:String = message
 
         while (data.length > MAXBYTES) {
             val fragment:String = data.substring(0, MAXBYTES)
             val bytes:ByteArray = fragment.toByteArray(Charsets.UTF_8)
 
-            result.add(copyBytes(0, bytes))
+            result.add(Packet(false, bytes))
             data = data.substring(19)
         }
 
-        result.add(copyBytes(END, data.toByteArray(Charsets.UTF_8)))
+        result.add(Packet(true, data.toByteArray(Charsets.UTF_8)))
 
         return result
     }
@@ -103,11 +102,11 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
     private fun write(characteristic: BluetoothGattCharacteristic):Boolean {
 
         if (packets.size > 0) {
-            val packet:ByteArray = packets.removeAt(0)
+            val packet:Packet = packets.removeAt(0)
 
-            Timber.i("Write "+String(packet).toString())
+            Timber.i("Write "+String(packet.message).toString())
 
-            characteristic.setValue(packet)
+            characteristic.setValue(packet.data)
 
             if (!connection.writeCharacteristic(characteristic)) {
                 Timber.e("Write error");
@@ -125,6 +124,7 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
 
             when {
                 newState == BluetoothProfile.STATE_DISCONNECTED -> {
+                    listener.isClosed()
                     gatt.close()
                     Timber.i("Disconnected " + gatt.device.address+ " status: "+status)
                 }
@@ -143,11 +143,7 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
 
             Timber.i("Changed read " + message)
 
-            response = response + message
-
-            if (value.get(0) == END) {
-                listener.response(response)
-            }
+            listener.packetReceived(Packet.createPacket(value))
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
@@ -159,6 +155,8 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
             super.onCharacteristicWrite(gatt, characteristic, status);
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                Timber.i("onCharacteristicWrite  "+String(characteristic.value))
+                listener.packetReceived(Packet.createPacket(characteristic.value))
                 if (characteristic.uuid.equals(characteristicUUID)) {
                     write(characteristic)
                 }

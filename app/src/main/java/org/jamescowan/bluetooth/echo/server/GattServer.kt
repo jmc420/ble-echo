@@ -8,6 +8,8 @@ import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.BluetoothLeAdvertiser
 import android.content.Context
 import android.os.ParcelUuid
+import org.jamescowan.bluetooth.echo.Constants
+import org.jamescowan.bluetooth.echo.packet.Packet
 import org.jamescowan.bluetooth.echo.server.IGattServer
 import org.jamescowan.bluetooth.echo.server.IGattServerListener
 import timber.log.Timber
@@ -97,6 +99,10 @@ abstract class GattServer(context:Context) : IGattServer {
                 BluetoothProfile.STATE_CONNECTED -> {
                     listener.addDevice(device)
                     Timber.i("BluetoothDevice connected: ${device.address} bonded: ${device.bondState}")
+
+                    val isConnected = this@GattServer.bluetoothGattServer.connect(device, false)
+
+                    Timber.i("BluetoothDevice connection: ${device.address} connected: ${isConnected}")
                 }
 
                 BluetoothProfile.STATE_DISCONNECTING -> {
@@ -122,6 +128,12 @@ abstract class GattServer(context:Context) : IGattServer {
 
             super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite, responseNeeded, offset, value)
 
+            if(!preparedWrite && responseNeeded) {
+                val packet:Packet = Packet.createPacket(value)
+                val response:Packet = listener.notifyWrite(packet)
+
+                this@GattServer.bluetoothGattServer.sendResponse(device, requestId, 0, 0, response.data);
+            }
             Timber.i("BluetoothDevice write request: ${device.address}")
         }
 

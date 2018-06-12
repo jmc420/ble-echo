@@ -14,6 +14,7 @@ import org.jamescowan.bluetooth.echo.R
 import org.jamescowan.bluetooth.echo.client.GattClient
 import org.jamescowan.bluetooth.echo.client.IGattClient
 import org.jamescowan.bluetooth.echo.client.IGattClientListener
+import org.jamescowan.bluetooth.echo.packet.Packet
 import org.jetbrains.anko.*
 import org.jetbrains.anko.sdk25.coroutines.onClick
 
@@ -21,6 +22,7 @@ class ConnectActivity : AppCompatActivity() {
 
     private lateinit var gattClient: IGattClient
     private var connected = false;
+    private var response:String = "";
     private lateinit var view: ConnectActivityUI
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,8 +44,12 @@ class ConnectActivity : AppCompatActivity() {
                 updateConnectionStatus()
             }
 
-            override fun response(message: String) {
-                updateResponse(message)
+            override fun packetReceived(packet:Packet) {
+                response += String(packet.message)
+                updateResponse(String(response.toByteArray()))
+                if (packet.isEnd) {
+                    response = ""
+                }
             }
         })
         gattClient.connect(this, device)

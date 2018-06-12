@@ -6,7 +6,9 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.content.Context
 import org.jamescowan.bluetooth.echo.Constants
+import org.jamescowan.bluetooth.echo.packet.Packet
 import org.jamescowan.bluetooth.echo.server.IGattServerListener
+import timber.log.Timber
 import java.util.*
 
 class GattEchoServer(context:Context) : GattServer(context), IGattServerListener {
@@ -40,6 +42,11 @@ class GattEchoServer(context:Context) : GattServer(context), IGattServerListener
 
     override fun getServiceUUID(): UUID {
         return Constants.ServiceUUID()
+    }
+
+    override fun notifyWrite(packet: Packet): Packet {
+        Timber.i("Received "+String(packet.message))
+        return packet
     }
 
     // IGattServerListener overrides
