@@ -96,7 +96,7 @@ abstract class GattServer(context:Context) : IGattServer {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     listener.addDevice(device)
-                    Timber.i("BluetoothDevice connected: ${device.address}")
+                    Timber.i("BluetoothDevice connected: ${device.address} bonded: ${device.bondState}")
                 }
 
                 BluetoothProfile.STATE_DISCONNECTING -> {
@@ -133,7 +133,8 @@ abstract class GattServer(context:Context) : IGattServer {
 
             if (responseNeeded) {
                 try {
-                    this@GattServer.bluetoothGattServer.sendResponse(device, requestId, GATT_SUCCESS, 0, value);
+                    this@GattServer.bluetoothGattServer.sendResponse(device, requestId, GATT_SUCCESS, 0, null);
+                    Timber.i("BluetoothDevice descriptor write request: ${device.address}")
                 }
                 catch (e:Throwable) {
                     Timber.e("Exception "+e.message)

@@ -126,7 +126,7 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
             when {
                 newState == BluetoothProfile.STATE_DISCONNECTED -> {
                     gatt.close()
-                    Timber.i("Disconnected " + gatt.device.address)
+                    Timber.i("Disconnected " + gatt.device.address+ " status: "+status)
                 }
                 newState == BluetoothProfile.STATE_CONNECTED -> {
                     Timber.i("Connected " + gatt.device.address)
