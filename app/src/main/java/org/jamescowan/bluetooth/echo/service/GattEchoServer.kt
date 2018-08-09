@@ -5,11 +5,16 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.content.Context
+import android.widget.Toast
 import org.jamescowan.bluetooth.echo.Constants
 import org.jamescowan.bluetooth.echo.packet.Packet
 import org.jamescowan.bluetooth.echo.server.IGattServerListener
 import timber.log.Timber
 import java.util.*
+import android.os.Handler
+import android.os.Looper
+
+
 
 class GattEchoServer(context:Context) : GattServer(context), IGattServerListener {
 
@@ -44,6 +49,14 @@ class GattEchoServer(context:Context) : GattServer(context), IGattServerListener
         return Constants.ServiceUUID()
     }
 
+    override fun notify(message:String) {
+        val handler = Handler(Looper.getMainLooper())
+
+        handler.postDelayed(Runnable {
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }, 10)
+    }
+
     override fun notifyWrite(packet: Packet): Packet {
         Timber.i("Received "+String(packet.message))
         return packet
@@ -54,6 +67,7 @@ class GattEchoServer(context:Context) : GattServer(context), IGattServerListener
     override fun addDevice(device: BluetoothDevice) {
 
     }
+
     override fun notifyAdvertiseFailure(errorCode: Int) {
 
     }

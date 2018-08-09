@@ -21,7 +21,7 @@ abstract class GattServer(context:Context) : IGattServer {
     private val advertiseCallback: GattAdvertiseCallback = GattAdvertiseCallback()
     private var bluetoothGattServer: BluetoothGattServer
     private var bluetoothManager:BluetoothManager
-    private val context:Context
+    protected val context:Context
     private var listener: IGattServerListener
 
     init {
@@ -111,6 +111,7 @@ abstract class GattServer(context:Context) : IGattServer {
 
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     listener.removeDevice(device)
+                    listener.notify("BluetoothDevice disconnected: ${device.address} status: ${status}")
                     Timber.i("BluetoothDevice disconnected: ${device.address} status: ${status}")
                 }
             }

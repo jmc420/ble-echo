@@ -2,6 +2,7 @@ package org.jamescowan.bluetooth.echo.client
 
 import android.bluetooth.*
 import android.content.Context
+import android.widget.Toast
 import org.jamescowan.bluetooth.echo.Constants
 import org.jamescowan.bluetooth.echo.packet.Packet
 import timber.log.Timber
@@ -125,6 +126,7 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
             when {
                 newState == BluetoothProfile.STATE_DISCONNECTED -> {
                     listener.isClosed()
+                    listener.notify("Disconnected " + gatt.device.address+ " status: "+status)
                     gatt.close()
                     Timber.i("Disconnected " + gatt.device.address+ " status: "+status)
                 }

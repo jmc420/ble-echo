@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothDevice
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.v7.app.AppCompatActivity
 import android.view.Gravity
 import android.widget.EditText
@@ -42,6 +44,14 @@ class ConnectActivity : AppCompatActivity() {
             override fun isClosed() {
                 connected = false
                 updateConnectionStatus()
+            }
+
+            override fun notify(message:String) {
+                val handler = Handler(Looper.getMainLooper())
+
+                handler.postDelayed(Runnable {
+                    Toast.makeText(this@ConnectActivity, message, Toast.LENGTH_LONG).show()
+                }, 10)
             }
 
             override fun packetReceived(packet:Packet) {
