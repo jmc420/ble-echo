@@ -22,6 +22,7 @@ abstract class GattServer(context:Context) : IGattServer {
     private var bluetoothGattServer: BluetoothGattServer
     private var bluetoothManager:BluetoothManager
     protected val context:Context
+    private var initialised: Boolean = false
     private var listener: IGattServerListener
 
     init {
@@ -29,6 +30,7 @@ abstract class GattServer(context:Context) : IGattServer {
         this.listener = getListener()
         this.bluetoothManager = getBluetoothManager()
         this.bluetoothGattServer = createServer()
+        this.initialised = true
     }
 
     override fun close() {
@@ -100,9 +102,11 @@ abstract class GattServer(context:Context) : IGattServer {
                     listener.addDevice(device)
                     Timber.i("BluetoothDevice connected: ${device.address} bonded: ${device.bondState}")
 
-                    val isConnected = this@GattServer.bluetoothGattServer.connect(device, false)
+                    if (this@GattServer.initialised) {
+                        val isConnected = this@GattServer.bluetoothGattServer.connect(device, false)
 
-                    Timber.i("BluetoothDevice connection: ${device.address} connected: ${isConnected}")
+                        Timber.i("BluetoothDevice connection: ${device.address} connected: ${isConnected}")
+                    }
                 }
 
                 BluetoothProfile.STATE_DISCONNECTING -> {

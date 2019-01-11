@@ -13,6 +13,7 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
     private var characteristicUUID: UUID
     private lateinit var connection: BluetoothGatt
     private var connected = false;
+    private val gattCallback:GattCallback = GattCallback()
     private var listener: IGattClientListener
     private var packets: MutableList<Packet> = mutableListOf()
     private var serviceUUID: UUID
@@ -33,7 +34,7 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
     }
 
     override public fun connect(context: Context, device: BluetoothDevice) {
-        connection = device.connectGatt(context, false, GattCallback())
+        connection = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
     }
 
     override public fun write(message: String): Boolean {
@@ -107,6 +108,7 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
 
             Timber.i("Write "+String(packet.message).toString())
 
+            characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
             characteristic.setValue(packet.data)
 
             if (!connection.writeCharacteristic(characteristic)) {
