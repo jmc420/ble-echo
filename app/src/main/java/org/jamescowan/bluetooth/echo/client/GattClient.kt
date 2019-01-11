@@ -29,6 +29,7 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
     override public fun close() {
         if (connected) {
             connection.disconnect()
+            connection.close()
             connected = false;
         }
     }
@@ -90,6 +91,7 @@ class GattClient(serviceUUID: UUID, characteristicUUID: UUID, listener: IGattCli
 
     private fun disconnect(gatt: BluetoothGatt) {
         gatt.disconnect()
+        gatt.close()
         connected = false;
         listener.isClosed()
     }
